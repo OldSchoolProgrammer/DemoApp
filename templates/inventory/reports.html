@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Reports - Jewelry Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title"><i class="bi bi-graph-up me-2"></i>Reports</h1>
+            <p class="page-subtitle">Inventory analytics and insights</p>
+        </div>
+        <button id="print-report" class="btn btn-outline-secondary no-print">
+            <i class="bi bi-printer me-2"></i>Print Report
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Category Performance -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart text-primary me-2"></i>Category Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if categories_with_values %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-center">Items</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in categories_with_values %}
+                                <tr>
+                                    <td class="fw-medium">{{ cat.name }}</td>
+                                    <td class="text-center">{{ cat.total_items }}</td>
+                                    <td class="text-center">{{ cat.total_quantity }}</td>
+                                    <td class="text-end text-success fw-bold">
+                                        €{{ cat.total_value|floatformat:2|intcomma }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">No category data available</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Metal Type Distribution -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-gem text-info me-2"></i>Metal Type Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% if metal_breakdown %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Metal Type</th>
+                                    <th class="text-center">Items</th>
+                                    <th class="text-center">Total Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for metal in metal_breakdown %}
+                                <tr>
+                                    <td class="fw-medium text-capitalize">{{ metal.metal_type|default:"Unspecified" }}
+                                    </td>
+                                    <td class="text-center">{{ metal.count }}</td>
+                                    <td class="text-center">{{ metal.total_quantity }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">No metal type data available</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Report -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Low Stock Report</h5>
+                    <span class="badge bg-warning text-dark">{{ low_stock_items|length }} items</span>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Supplier</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Cost Price</th>
+                                    <th class="text-end">Selling Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_items %}
+                                <tr>
+                                    <td class="text-muted small">{{ item.sku }}</td>
+                                    <td>
+                                        <a href="{{ item.get_absolute_url }}" class="text-decoration-none fw-medium">
+                                            {{ item.name|truncatechars:30 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.category.name }}</td>
+                                    <td>{{ item.supplier.name|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <span
+                                            class="badge {% if item.quantity == 0 %}badge-stock-out{% else %}badge-stock-low{% endif %}">
+                                            {{ item.quantity }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">€{{ item.cost_price|floatformat:2 }}</td>
+                                    <td class="text-end">€{{ item.selling_price|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-check-circle text-success fs-1 d-block mb-2"></i>
+                        All items are well stocked!
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- High Value Items -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-star text-warning me-2"></i>Top 10 High Value Items</h5>
+                </div>
+                <div class="card-body">
+                    {% if high_value_items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>SKU</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-end">Selling Price</th>
+                                    <th class="text-end">Stock Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in high_value_items %}
+                                <tr>
+                                    <td class="text-muted">#{{ forloop.counter }}</td>
+                                    <td class="text-muted small">{{ item.sku }}</td>
+                                    <td>
+                                        <a href="{{ item.get_absolute_url }}" class="text-decoration-none fw-medium">
+                                            {{ item.name|truncatechars:30 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.category.name }}</td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end text-primary fw-bold">
+                                        €{{ item.selling_price|floatformat:2|intcomma }}
+                                    </td>
+                                    <td class="text-end text-success fw-bold">
+                                        €{{ item.stock_value|floatformat:2|intcomma }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">No items available</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ item.name }} - Jewelry Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventory:dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventory:item_list' %}">Inventory</a></li>
+            <li class="breadcrumb-item active">{{ item.sku }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Item Image -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body p-0">
+                    {% if item.image %}
+                    <img src="{{ item.image.url }}" class="img-fluid rounded" alt="{{ item.name }}"
+                        style="width: 100%; max-height: 500px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                        style="height: 400px;">
+                        <i class="bi bi-gem text-muted" style="font-size: 6rem;"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Barcode Section -->
+            <div class="card mt-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-upc-scan me-2"></i>Barcode</h6>
+                </div>
+                <div class="card-body text-center">
+                    {% if item.barcode_image %}
+                    <img src="{{ item.barcode_image.url }}" alt="Barcode: {{ item.sku }}" class="img-fluid"
+                        style="max-height: 100px;">
+                    <p class="text-muted small mt-2 mb-0">{{ item.sku }}</p>
+                    {% else %}
+                    <div class="text-muted py-3">
+                        <i class="bi bi-upc-scan fs-1 d-block mb-2" style="opacity: 0.3;"></i>
+                        <span class="small">Barcode not generated</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Item Details -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold">{{ item.sku }}</span>
+                            <h2 class="mb-1">{{ item.name }}</h2>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-tag me-1"></i>{{ item.category.name }}
+                                {% if item.supplier %}
+                                <span class="mx-2">•</span>
+                                <i class="bi bi-truck me-1"></i>{{ item.supplier.name }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <span
+                            class="badge fs-6 {% if item.stock_status == 'ok' %}badge-stock-ok{% elif item.stock_status == 'low' %}badge-stock-low{% else %}badge-stock-out{% endif %}">
+                            {% if item.stock_status == 'ok' %}
+                            In Stock
+                            {% elif item.stock_status == 'low' %}
+                            Low Stock
+                            {% else %}
+                            Out of Stock
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if item.description %}
+                    <p class="text-muted mb-4">{{ item.description }}</p>
+                    {% endif %}
+
+                    <!-- Pricing -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-muted small text-uppercase">Selling Price</div>
+                                <div class="h3 mb-0 text-primary fw-bold">
+                                    €{{ item.selling_price|floatformat:2|intcomma }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-muted small text-uppercase">Cost Price</div>
+                                <div class="h4 mb-0">
+                                    €{{ item.cost_price|floatformat:2|intcomma }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-muted small text-uppercase">Profit Margin</div>
+                                <div class="h4 mb-0 text-success">
+                                    {{ item.profit_margin|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock & Details -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="text-muted small text-uppercase">Quantity</div>
+                            <div class="h4 mb-0">{{ item.quantity }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-muted small text-uppercase">Stock Value</div>
+                            <div class="h5 mb-0">
+                                €{{ item.stock_value|floatformat:2|intcomma }}
+                            </div>
+                        </div>
+                        {% if item.metal_type %}
+                        <div class="col-md-3">
+                            <div class="text-muted small text-uppercase">Metal Type</div>
+                            <div class="h5 mb-0">{{ item.get_metal_type_display }}</div>
+                        </div>
+                        {% endif %}
+                        {% if item.weight_grams %}
+                        <div class="col-md-3">
+                            <div class="text-muted small text-uppercase">Weight</div>
+                            <div class="h5 mb-0">{{ item.weight_grams }}g</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if item.gemstone %}
+                    <div class="mb-4">
+                        <div class="text-muted small text-uppercase">Gemstone</div>
+                        <div class="h5 mb-0"><i class="bi bi-diamond me-2 text-info"></i>{{ item.gemstone }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'inventory:item_update' item.pk %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Edit Item
+                        </a>
+                        <a href="{% url 'inventory:stock_adjust' %}" class="btn btn-outline-success">
+                            <i class="bi bi-plus-slash-minus me-2"></i>Adjust Stock
+                        </a>
+                        <a href="{% url 'inventory:item_delete' item.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-2"></i>Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta Info -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row text-muted small">
+                        <div class="col-md-6">
+                            <i class="bi bi-clock me-1"></i> Created: {{ item.created_at|date:"M d, Y H:i" }}
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-pencil me-1"></i> Updated: {{ item.updated_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Stock Transaction History</h5>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>User</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                <tr>
+                                    <td>{{ trans.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-{% if trans.transaction_type == 'in' %}success{% elif trans.transaction_type == 'out' %}danger{% else %}secondary{% endif %}">
+                                            {{ trans.get_transaction_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-medium">
+                                        {% if trans.transaction_type == 'in' %}
+                                        <span class="text-success">
+                                            +{{ trans.quantity }}
+                                        </span>
+                                        {% elif trans.transaction_type == 'out' %}
+                                        <span class="text-danger">
+                                            -{{ trans.quantity }}
+                                        </span>
+                                        {% else %}
+                                        {{ trans.quantity }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ trans.user.username|default:"System" }}</td>
+                                    <td class="text-muted">{{ trans.notes|default:"-"|truncatechars:50 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        No transactions recorded for this item yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

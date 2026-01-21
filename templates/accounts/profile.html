@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Jewelry Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-person-circle me-2"></i>My Profile</h1>
+        <p class="page-subtitle">Manage your account settings</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center"
+                            style="width: 100px; height: 100px;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-1">{{ user.username }}</h3>
+                    <p class="text-muted">{{ user.email|default:"No email set" }}</p>
+
+                    <hr class="my-4">
+
+                    <div class="row text-start">
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">Username</div>
+                            <div class="fw-medium">{{ user.username }}</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">Email</div>
+                            <div class="fw-medium">{{ user.email|default:"Not set" }}</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">First Name</div>
+                            <div class="fw-medium">{{ user.first_name|default:"Not set" }}</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">Last Name</div>
+                            <div class="fw-medium">{{ user.last_name|default:"Not set" }}</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">Date Joined</div>
+                            <div class="fw-medium">{{ user.date_joined|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <div class="text-muted small text-uppercase">Last Login</div>
+                            <div class="fw-medium">{{ user.last_login|date:"M d, Y H:i" }}</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-key me-2"></i>Change Password
+                        </a>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear me-2"></i>Admin Panel
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

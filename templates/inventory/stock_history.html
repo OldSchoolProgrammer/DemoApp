@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock History - Jewelry Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title"><i class="bi bi-clock-history me-2"></i>Stock History</h1>
+            <p class="page-subtitle">All stock transactions</p>
+        </div>
+        <a href="{% url 'inventory:stock_adjust' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>New Transaction
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Item</th>
+                            <th>SKU</th>
+                            <th>Type</th>
+                            <th class="text-center">Quantity</th>
+                            <th>User</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trans in transactions %}
+                        <tr>
+                            <td class="text-muted small">{{ trans.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{{ trans.item.get_absolute_url }}" class="text-decoration-none fw-medium">
+                                    {{ trans.item.name|truncatechars:25 }}
+                                </a>
+                            </td>
+                            <td class="text-muted small">{{ trans.item.sku }}</td>
+                            <td>
+                                <span
+                                    class="badge bg-{% if trans.transaction_type == 'in' %}success{% elif trans.transaction_type == 'out' %}danger{% else %}secondary{% endif %}">
+                                    {{ trans.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold">
+                                {% if trans.transaction_type == 'in' %}
+                                <span class="text-success">+{{ trans.quantity }}</span>
+                                {% elif trans.transaction_type == 'out' %}
+                                <span class="text-danger">-{{ trans.quantity }}</span>
+                                {% else %}
+                                {{ trans.quantity }}
+                                {% endif %}
+                            </td>
+                            <td>{{ trans.user.username|default:"System" }}</td>
+                            <td class="text-muted small">{{ trans.notes|truncatechars:30|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item"><a
+                            class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h5>No transactions yet</h5>
+                <p class="text-muted">Stock transactions will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

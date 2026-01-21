@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Inventory - Jewelry Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="page-title"><i class="bi bi-gem me-2"></i>Inventory</h1>
+            <p class="page-subtitle">{{ total_count }} item{{ total_count|pluralize }} found</p>
+        </div>
+        <div>
+            <a href="{% url 'inventory:item_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Add New Item
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3">
+            <div class="card filter-card">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filters</h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="search-form">
+                        <div class="mb-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="query" class="form-control" placeholder="Name or SKU..."
+                                value="{{ request.GET.query }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            {{ search_form.category }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Metal Type</label>
+                            {{ search_form.metal_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock Status</label>
+                            {{ search_form.stock_status }}
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Apply Filters
+                            </button>
+                            <a href="{% url 'inventory:item_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Grid -->
+        <div class="col-lg-9">
+            {% if items %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                {% for item in items %}
+                <div class="col">
+                    <div class="card item-card h-100">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                            style="height: 200px;">
+                            <i class="bi bi-gem text-muted" style="font-size: 4rem;"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="item-sku">{{ item.sku }}</span>
+                                <span
+                                    class="badge {% if item.stock_status == 'ok' %}badge-stock-ok{% elif item.stock_status == 'low' %}badge-stock-low{% else %}badge-stock-out{% endif %}">
+                                    {% if item.stock_status == 'ok' %}In Stock{% elif item.stock_status == 'low' %}Low
+                                    Stock{% else %}Out of Stock{% endif %}
+                                </span>
+                            </div>
+                            <h6 class="item-name">{{ item.name|truncatechars:35 }}</h6>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-tag me-1"></i>{{ item.category.name }}
+                                {% if item.metal_type %}
+                                <span class="mx-1">&bull;</span>
+                                <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                                {{ item.get_metal_type_display }}
+                                {% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="item-price">€{{ item.selling_price|floatformat:2|intcomma }}</span>
+                                <span class="text-muted small">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ item.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                                <a href="{% url 'inventory:item_update' item.pk %}"
+                                    class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.metal_type %}metal_type={{ request.GET.metal_type }}&{% endif %}{% if request.GET.stock_status %}stock_status={{ request.GET.stock_status }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.metal_type %}metal_type={{ request.GET.metal_type }}&{% endif %}{% if request.GET.stock_status %}stock_status={{ request.GET.stock_status }}&{% endif %}page={{ num }}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% elif num >= page_obj.number|add:'-1' and num <= page_obj.number|add:'1' %} <li class="page-item">
+                        <a class="page-link"
+                            href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.metal_type %}metal_type={{ request.GET.metal_type }}&{% endif %}{% if request.GET.stock_status %}stock_status={{ request.GET.stock_status }}&{% endif %}page={{ num }}">
+                            {{ num }}
+                        </a>
+                        </li>
+                        {% elif num == page_obj.number|add:'-2' or num == page_obj.number|add:'2' %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.metal_type %}metal_type={{ request.GET.metal_type }}&{% endif %}{% if request.GET.stock_status %}stock_status={{ request.GET.stock_status }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="card">
+                <div class="card-body empty-state">
+                    <i class="bi bi-search"></i>
+                    <h5>No items found</h5>
+                    <p class="text-muted mb-3">Try adjusting your filters or add new items.</p>
+                    <a href="{% url 'inventory:item_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Add First Item
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
