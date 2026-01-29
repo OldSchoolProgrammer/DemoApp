@@ -166,12 +166,12 @@ def invoice_send_sms(request, pk):
         messages.error(request, 'Generate a payment link first.')
         return redirect('sales:invoice_detail', pk=pk)
     
-    success = NotificationService.send_invoice_sms(invoice)
+    success, error_msg = NotificationService.send_invoice_sms(invoice)
     
     if success:
         messages.success(request, f'Invoice SMS sent to {invoice.customer.phone}')
     else:
-        messages.error(request, 'Failed to send SMS. Check customer phone.')
+        messages.error(request, f'Failed to send SMS: {error_msg}')
     
     return redirect('sales:invoice_detail', pk=pk)
 

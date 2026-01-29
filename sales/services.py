@@ -97,14 +97,28 @@ Thank you for your business!
     @staticmethod
     def send_invoice_sms(invoice):
         """
-        Sends an SMS with the payment link.
+        Sends an SMS with the payment link via Twilio.
+        Returns tuple: (success: bool, error_message: str or None)
         """
-        if not invoice.customer.phone:
-            return False
-            
-        # Placeholder for SMS provider logic (e.g. Twilio)
-        # client = Client(account_sid, auth_token)
-        # message = client.messages.create(...)
+        from twilio.rest import Client
         
-        print(f"SIMULATED SMS to {invoice.customer.phone}: Pay your invoice here: {invoice.stripe_payment_link}")
-        return True
+        if not invoice.customer.phone:
+            return (False, "Customer has no phone number")
+        
+        if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
+            print(f"DEBUG: SID={settings.TWILIO_ACCOUNT_SID[:5]}... Token={settings.TWILIO_AUTH_TOKEN[:5]}...")
+            return (False, "Twilio configuration missing")
+            
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            
+            msg_body = f"JewelryPro: Your invoice #{invoice.id} for EUR {invoice.total_amount} is ready. Pay here: {invoice.stripe_payment_link}"
+            
+            message = client.messages.create(
+                body=msg_body,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=invoice.customer.phone
+            )
+            return (True, None)
+        except Exception as e:
+            return (False, str(e))
