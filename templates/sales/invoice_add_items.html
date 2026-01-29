@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Items to Invoice - JewelryPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1"><i class="bi bi-cart-plus me-2"></i>Add Items to Invoice #{{ invoice.pk }}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'inventory:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'sales:invoice_list' %}">Invoices</a></li>
+                <li class="breadcrumb-item active">Add Items</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Add from Inventory -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Add from Inventory</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Select Item</label>
+                                <select name="item_id" class="form-select">
+                                    <option value="">-- Select Inventory Item --</option>
+                                    {% for item in items %}
+                                    <option value="{{ item.pk }}">{{ item.name }} (€{{ item.selling_price }}) - {{
+                                        item.quantity }} in stock</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" class="form-control" value="1" min="1">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-plus-lg me-1"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Add Custom Item -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Add Custom Item</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="description" class="form-control"
+                                    placeholder="e.g., Custom Engraving">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Qty</label>
+                                <input type="number" name="quantity" class="form-control" value="1" min="1">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Unit Price (€)</label>
+                                <input type="number" name="unit_price" class="form-control" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-plus-lg"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Invoice Summary -->
+            <div class="card shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Invoice Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Customer:</strong> {{ invoice.customer.name }}</p>
+                    <hr>
+                    {% if invoice.items.exists %}
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for item in invoice.items.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <span>{{ item.description }}</span>
+                                <small class="text-muted d-block">{{ item.quantity }} × €{{ item.unit_price }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold">€{{ item.total_price }}</span>
+                                <a href="{% url 'sales:invoice_remove_item' invoice.pk item.pk %}"
+                                    class="btn btn-sm btn-link text-danger p-0 ms-2">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                        <span class="fw-bold fs-5">Total:</span>
+                        <span class="fw-bold fs-4 text-primary">€{{ invoice.total_amount }}</span>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No items added yet.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'sales:invoice_detail' invoice.pk %}"
+                        class="btn btn-success w-100 {% if not invoice.items.exists %}disabled{% endif %}">
+                        <i class="bi bi-check-lg me-1"></i> Finish & View Invoice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

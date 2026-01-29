@@ -62,35 +62,37 @@ class NotificationService:
     def send_invoice_email(invoice):
         """
         Sends an email with the invoice details and payment link.
+        Returns tuple: (success: bool, error_message: str or None)
         """
         if not invoice.customer.email:
-            return False
+            return (False, "Customer has no email address")
             
         subject = f"Invoice #{invoice.id} from Jewelry Store"
         message = f"""
-        Dear {invoice.customer.name},
-        
-        Please find your invoice #{invoice.id} attached.
-        Total Amount: €{invoice.total_amount}
-        
-        You can pay securely online using the following link:
-        {invoice.stripe_payment_link or 'Link generation pending'}
-        
-        Thank you for your business!
+Dear {invoice.customer.name},
+
+Please find your invoice #{invoice.id}.
+Total Amount: €{invoice.total_amount}
+
+You can pay securely online using the following link:
+{invoice.stripe_payment_link or 'Link generation pending'}
+
+Thank you for your business!
         """
         
         try:
             send_mail(
                 subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL, # Needs to be set in settings
+                message.strip(),
+                settings.DEFAULT_FROM_EMAIL,
                 [invoice.customer.email],
                 fail_silently=False,
             )
-            return True
+            return (True, None)
         except Exception as e:
-            print(f"Email Error: {e}")
-            return False
+            error_msg = str(e)
+            print(f"Email Error: {error_msg}")
+            return (False, error_msg)
 
     @staticmethod
     def send_invoice_sms(invoice):

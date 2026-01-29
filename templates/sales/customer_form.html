@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Customer - JewelryPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1">
+                    <i class="bi bi-person-{% if object %}gear{% else %}plus{% endif %} me-2"></i>
+                    {% if object %}Edit Customer{% else %}Add Customer{% endif %}
+                </h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'inventory:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'sales:customer_list' %}">Customers</a></li>
+                        <li class="breadcrumb-item active">{% if object %}Edit{% else %}Add{% endif %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i> Save Customer
+                            </button>
+                            <a href="{% url 'sales:customer_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
