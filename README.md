@@ -19,6 +19,12 @@ A comprehensive Django-based inventory management system designed specifically f
 - **Supplier Directory**: Manage vendor contact details and link them to inventory items.
 - **Categorization**: Organize inventory into customizable categories (Rings, Necklaces, etc.).
 
+### 💳 Sales & CRM (New)
+- **Customer Records**: comprehensive customer management with purchase history.
+- **Invoicing**: Create and manage professional invoices linked to inventory.
+- **Stripe Integration**: Secure payment processing with auto-generated Payment Links.
+- **Notifications**: Send invoices and paylinks directly via Email or SMS.
+
 ## Tech Stack
 
 - **Backend**: Django 5.2, Python 3.x
